@@ -3,12 +3,14 @@
 
 #define MAX_VERTEX 50
 #define MAX 50
-
+// 방문횟수를 알기 위한 배열
+int visited[MAX_VERTEX];
+// 그래프 2차원 배열 생성
 typedef struct GraphType {
 	int n;	
 	int adj_mat[MAX_VERTEX][MAX_VERTEX];
 } GraphType;
-
+// 그래프의 노드 생성
 typedef struct GraphNode {
 	int vertex; 
 	struct GraphNode* link;
@@ -18,41 +20,38 @@ typedef struct GraphType_List {
 	int n; 
 	GraphNode* adj_list[MAX_VERTEX];
 } GraphType_List;
-
-
+// 스택 구조체
 typedef struct Stack {
 	int top;
 	int data[MAX];
 }Stack;
-
+// 큐 구조체
 typedef struct Queue {
 	int front, rear;
 	int data[MAX];
 }Queue;
-
-int visited[MAX_VERTEX];
-
+// 스택 초기화
 void init_stack(Stack* s) {
 	s->top = -1;
 }
-
+// 큐 초기화
 void init_queue(Queue* q) {
 	q->front = 0;
 	q->rear = 0;
 }
-
+// 스택이 비어있는지 확인하는 함수
 int is_empty_stack(Stack* s) {
 	return s->top == -1;
 }
-
+// 큐가 비어있는지 확인하는 함수
 int is_empty_queue(Queue* q) {
 	return q->front == q->rear;
 }
-
+// 스택에 푸쉬
 void push(Stack* s, int item) {
-	s->data[++(s->top)];
+	s->data[++(s->top)] = item;
 }
-
+// 스택에서 팝
 int pop(Stack* s) {
 	if (s->top == -1) {
 		printf("stack is empty");
@@ -60,48 +59,47 @@ int pop(Stack* s) {
 	}
 	return s->data[(s->top)--];
 }
-
+// 큐에 인큐
 void enqueue(Queue* q, int item) {
-	if (q->front == q->rear + 1 % MAX) {
+	if (q->front == (q->rear + 1) % MAX) {
 		printf("Queue is full");
 		return;
-	}
-	else {
+	} else {
 		 q->rear = (q->rear + 1) % (MAX);
 		 q->data[q->rear] = item;
 	}
-
 }
-
+// 큐에 디큐
 int dequeue(Queue* q) {
 	if (q->front == q->rear) {
 		printf("Queue is empty");
-		return;
+		return -1;
+	} else {
+		q->front++;
+		return(q->data[q->front]);
 	}
-	return q->data[++(q->front)];
 }
-
+// 그래프 초기화
 void init_graph(GraphType_List* g) {
 	int v;
 	g->n = 0;
 	for (v = 0; v < MAX_VERTEX; v++) {
 		g->adj_list[v] = NULL;
 	}
-
 }
-
+// 그래프 정점 설정
 void insert_vertex(GraphType_List* g, int v) {
 	if (((g->n) + 1) > MAX_VERTEX) {
-		printf("�׷���: ���� ��ȣ ����");
+		printf("그래프: 정점 번호 오류");
 		return;
 	}
 	g->n++;
 }
-
+// 그래프 간선 설정
 void insert_edge(GraphType_List* g, int u, int v) {
 	GraphNode* node;
 	if (u >= g->n || v >= g->n) {
-		printf("�׷���: ���� ��ȣ ����");
+		printf("그래프: 정점 번호 오류");
 		return;
 	}
 	node = (GraphNode*)malloc(sizeof(GraphNode));
@@ -109,7 +107,7 @@ void insert_edge(GraphType_List* g, int u, int v) {
 	node->link = g->adj_list[u];
 	g->adj_list[u] = node;
 }
-
+// DFS 링크
 void dfs_list(GraphType_List* g, int v, int key) {
 	GraphNode* n;
 	int node;
@@ -117,13 +115,13 @@ void dfs_list(GraphType_List* g, int v, int key) {
 	init_stack(&s);
 	push(&s, v);
 	for (int i = 0; i < g->n; i++) visited[i] = 0;
-	while (!is_emptys(&s)) {
+	while (!is_empty_stack(&s)) {
 		node = pop(&s);
 		if (!visited[node]) {
 			visited[node] = 1;
 			printf("%d ", node);
 			if (node == key) {
-				printf("\nŽ�� ���� : %d �湮�� ����� ��: %d\n", key, node);
+				printf("\n탐색 성공 : %d 방문한 노드의 수: %d\n", key, node);
 				break;
 			}			
 			for (n = g->adj_list[node]; n != NULL; n = n->link) {
@@ -134,7 +132,7 @@ void dfs_list(GraphType_List* g, int v, int key) {
 		}
 	}
 }
-
+// BFS 링크
 void bfs_list(GraphType_List* g, int v, int key) {
 	GraphNode* n;
 	int node;
@@ -142,13 +140,13 @@ void bfs_list(GraphType_List* g, int v, int key) {
 	init_queue(&q);
 	enqueue(&q, v);
 	for (int i = 0; i < g->n; i++) visited[i] = 0;
-	while (!is_emptyq(&q)) {
+	while (!is_empty_queue(&q)) {
 		node = dequeue(&q);
 		if (!visited[node]) {
 			visited[node] = 1;
 			printf("%d ", node); 
 			if (node == key) { 
-				printf("\nŽ�� ���� : %d �湮�� ����� ��: %d\n", key, node);
+				printf("\n탐색 성공 : %d 방문한 노드의 수: %d\n", key, node);
 				break;
 			}
 			for (n = g->adj_list[node]; n != NULL; n = n->link) {
@@ -159,10 +157,10 @@ void bfs_list(GraphType_List* g, int v, int key) {
 		}
 	}
 }
-
+// 그래프를 만드는 함수
 GraphType_List* make_Graph() {
 	GraphType_List* g = (GraphType_List*)malloc(sizeof(GraphType_List));
-	init_List(g);
+	init_graph(g);
 
 	for (int i = 0; i < 11; i++) {
 		insert_vertex(g, i);
@@ -186,13 +184,12 @@ GraphType_List* make_Graph() {
 			insert_edge(g, i, edges[i][j]);
 		}
 	}
-
 	return g;
 }
 
 
 int main(int argc, char* argv[]) {
-	GraphType_List* g = makeGraph();
+	GraphType_List* g = make_Graph();
 
 	printf("1. DFS \n2. BFS \n3. Exit \n");
 	int menu = 0;
@@ -203,12 +200,12 @@ int main(int argc, char* argv[]) {
 
 		switch (menu) {
 		case 1:
-			printf("���� ��ȣ�� Ž���� �� �Է�: ");
+			printf("시작 번호와 탐색할 값 입력: ");
 			scanf_s("%d %d", &start, &item);
 			dfs_list(g, start, item);
 			break;
 		case 2:
-			printf("���� ��ȣ�� Ž���� �� �Է�: ");
+			printf("시작 번호와 탐색할 값 입력: ");
 			scanf_s("%d %d", &start, &item);
 			bfs_list(g, start, item);
 			break;
@@ -221,7 +218,6 @@ int main(int argc, char* argv[]) {
 		}
 
 	}
-
 	free(g);
 
 	return 0;
